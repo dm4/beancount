@@ -859,6 +859,22 @@ class AddCurrency(query_compile.EvalFunction):
         return amount.Amount(args[0], args[1])
 
 
+class AddPercentage(query_compile.EvalFunction):
+    __intypes__ = [Decimal, Decimal]
+
+    def __init__(self, operands):
+        super().__init__(operands, amount.Amount)
+
+    def __call__(self, context):
+        args = self.eval_args(context)
+        percentage = 0
+        try:
+            percentage = args[0] / args[1]
+        except (decimal.DivisionByZero, decimal.InvalidOperation):
+            pass
+        return amount.Amount(percentage * 100, '%')
+
+
 class SubInv(query_compile.EvalFunction):
     __intypes__ = [inventory.Inventory, inventory.Inventory, str]
 
@@ -885,6 +901,7 @@ SIMPLE_FUNCTIONS = {
     ('safediv', Decimal, Decimal)                        : SafeDiv,
     ('safediv', Decimal, int)                            : SafeDivInt,
     'add_currency'                                       : AddCurrency,
+    'add_percentage'                                     : AddPercentage,
     'sub_inv'                                            : SubInv,
     'length'                                             : Length,
     'str'                                                : Str,
