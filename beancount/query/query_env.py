@@ -848,6 +848,30 @@ class DateAdd(query_compile.EvalFunction):
         return args[0] + datetime.timedelta(days=args[1])
 
 
+class AddCurrency(query_compile.EvalFunction):
+    __intypes__ = [Decimal, str]
+
+    def __init__(self, operands):
+        super().__init__(operands, amount.Amount)
+
+    def __call__(self, context):
+        args = self.eval_args(context)
+        return amount.Amount(args[0], args[1])
+
+
+class SubInv(query_compile.EvalFunction):
+    __intypes__ = [inventory.Inventory, inventory.Inventory, str]
+
+    def __init__(self, operands):
+        super().__init__(operands, amount.Amount)
+
+    def __call__(self, context):
+        args = self.eval_args(context)
+        a = args[0].get_currency_units(args[2])
+        b = args[1].get_currency_units(args[2])
+        return amount.Amount(a.number - b.number, args[2])
+
+
 # FIXME: Why do I need to specify the arguments here? They are already derived
 # from the functions. Just fetch them from instead. Make the compiler better.
 SIMPLE_FUNCTIONS = {
@@ -860,6 +884,8 @@ SIMPLE_FUNCTIONS = {
     ('abs', inventory.Inventory)                         : AbsInventory,
     ('safediv', Decimal, Decimal)                        : SafeDiv,
     ('safediv', Decimal, int)                            : SafeDivInt,
+    'add_currency' 					 : AddCurrency,
+    'sub_inv'      					 : SubInv,
     'length'                                             : Length,
     'str'                                                : Str,
     'maxwidth'                                           : MaxWidth,
