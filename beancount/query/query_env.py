@@ -866,10 +866,10 @@ class SubInv(query_compile.EvalFunction):
         super().__init__(operands, amount.Amount)
 
     def __call__(self, context):
-        args = self.eval_args(context)
-        a = args[0].get_currency_units(args[2])
-        b = args[1].get_currency_units(args[2])
-        return amount.Amount(a.number - b.number, args[2])
+        a, b, currency = self.eval_args(context)
+        a = a.reduce(convert.convert_position, currency, context.price_map, None).get_currency_units(currency)
+        b = b.reduce(convert.convert_position, currency, context.price_map, None).get_currency_units(currency)
+        return amount.Amount(a.number - b.number, currency)
 
 
 # FIXME: Why do I need to specify the arguments here? They are already derived
@@ -884,8 +884,8 @@ SIMPLE_FUNCTIONS = {
     ('abs', inventory.Inventory)                         : AbsInventory,
     ('safediv', Decimal, Decimal)                        : SafeDiv,
     ('safediv', Decimal, int)                            : SafeDivInt,
-    'add_currency' 					 : AddCurrency,
-    'sub_inv'      					 : SubInv,
+    'add_currency'                                       : AddCurrency,
+    'sub_inv'                                            : SubInv,
     'length'                                             : Length,
     'str'                                                : Str,
     'maxwidth'                                           : MaxWidth,
